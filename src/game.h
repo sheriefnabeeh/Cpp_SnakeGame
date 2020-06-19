@@ -14,7 +14,8 @@ class Game {
            std::size_t target_frame_duration);
   int GetScore() const;
   int GetSize() const;
-
+  SDL_Point GetFoodLocation() const;
+  Snake GetSnake();
  private:
   Snake snake;
   SDL_Point food;

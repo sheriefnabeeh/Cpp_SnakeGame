@@ -85,3 +85,5 @@ void Game::Update() {
 
 int Game::GetScore() const { return score; }
 int Game::GetSize() const { return snake.size; }
+SDL_Point Game::GetFoodLocation() const {return food;}
+Snake Game::GetSnake() {return snake;}
