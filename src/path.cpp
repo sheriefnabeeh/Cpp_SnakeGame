@@ -26,18 +26,30 @@ const int delta[4][2]{{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 /**
  * Compare the F values of two cells.
  */
-Path_A::Path_A() {}
+Path_A::Path_A() {cout << "Constructor called" << "\n";}
+Path_A::~Path_A(){cout <<"object destructor" << "\n";}
+std::vector<Path_A::Node> Path_A::GetFinalPath()
+{
+  return final_path;
+}
+void Path_A::SetFinalPath()
+{
+  final_path.clear();
+}
 bool Comparethis(Path_A::Node begin_node, Path_A::Node end_node)
 {
+  if (begin_node.g_value + begin_node.h_value == end_node.g_value + end_node.h_value){
+   return  begin_node.h_value > end_node.h_value;
+  }
   return begin_node.g_value + begin_node.h_value > end_node.g_value + end_node.h_value;
 }
 
 /**
  * Sort the two-dimensional vector of ints in descending order.
  */
-void CellSort(vector<Path_A::Node> &node_vector)
+void CellSort(vector<Path_A::Node> *node_vector)
 {
-  std::sort(node_vector.begin(), node_vector.end(), Comparethis);
+  std::sort(node_vector->begin(), node_vector->end(), Comparethis);
 }
 
 // Calculate the manhattan distance
@@ -49,7 +61,7 @@ int Heuristic(int x1, int y1, int x2, int y2)
 /** 
  * Check that a cell is valid: on the grid, not an obstacle, and clear. 
  */
-bool Path_A::CheckValidCell(int x, int y, Game &game)
+bool Path_A::CheckValidCell(int x, int y, Snake &snake)
 {
   /*
 check if x is not on the body of the snake or outside grid
@@ -57,21 +69,18 @@ either loop over snake's body or mark the grid with the body to identify them
 or add the snakes body to a node vector
 */
   bool clear_cell = true;
-  for (SDL_Point snake_point : game.GetSnake().body)
+  if (snake.SnakeCell(x, y))
   {
-    if (x == static_cast<int>(game.GetSnake().head_x) && x == static_cast<int>(game.GetSnake().head_y))
-    {
-      clear_cell = false;
-      break;
-    }
+    clear_cell = false;
   }
-  bool on_grid_x = (clear_cell && x >= 0 && x < pGridWidth && x < pGridHeight);
-  bool on_grid_y = (clear_cell && y >= 0 && x < pGridWidth && x < pGridHeight);
+
+  bool on_grid_x =(clear_cell && x > 0 && x <= pGridWidth);
+  bool on_grid_y =(clear_cell && y > 0 && y <= pGridWidth);
   if (on_grid_x && on_grid_y)
   {
     for (Node n : visited)
     {
-    //  std::cout << "n.x = " << n.x << "and x = " << x <<"\n";
+      //  std::cout << "n.x = " << n.x << "and x = " << x <<"\n";
       if (n.x == x && n.y == y)
         clear_cell = false;
     }
@@ -96,7 +105,7 @@ void Path_A::AddToOpen(Node &node)
 /** 
  * Expand current nodes's neighbors and add them to the open list.
  */
-void Path_A::ExpandNeighbors(const Node &current, int goal[2], Game &game)
+void Path_A::ExpandNeighbors(const Node &current, int goal[2], Snake &snake)
 {
   // Get current node's data.
   int x = current.x;
@@ -109,9 +118,9 @@ void Path_A::ExpandNeighbors(const Node &current, int goal[2], Game &game)
     Node neighbor;
     int x2 = x + delta[i][0];
     int y2 = y + delta[i][1];
-
+    //std::cout << "out = " <<i <<std::endl;
     // Check that the potential neighbor's x2 and y2 values are on the grid and not closed.
-    if (Path_A::CheckValidCell(x2, y2, game))
+    if (Path_A::CheckValidCell(x2, y2, snake))
     {
       // Increment g value and add neighbor to open list.
       neighbor.g_value = g + 1;
@@ -119,6 +128,7 @@ void Path_A::ExpandNeighbors(const Node &current, int goal[2], Game &game)
       neighbor.y = y2;
       neighbor.h_value = Heuristic(x2, y2, goal[0], goal[1]);
       AddToOpen(neighbor);
+      if (i==3) break;
     }
   }
 }
@@ -126,26 +136,30 @@ void Path_A::ExpandNeighbors(const Node &current, int goal[2], Game &game)
 /** 
  * Implementation of A* search algorithm
  */
-vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Game &game)
+vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Snake &snake)
 {
   // Create the vector of open nodes.
   //vector<Node> open{};
 
   // Initialize the starting node.
   Node node_init{init[0], init[1], false, 0, 0};
-  int h_value = Heuristic(node_init.x, node_init.y, goal[0], goal[1]);
+  //visited.push_back(node_init);
+  //int h_value = Heuristic(node_init.x, node_init.y, goal[0], goal[1]);
 
   AddToOpen(node_init);
+  ExpandNeighbors(node_init, goal, snake);
 
   while (open.size() > 0)
   {
     // Get the next node
-    CellSort(open);
+    CellSort(&open);
+    //choice of current is wrong here because sorting might choose a random node according to the same sum of g and h
+    //example : g=7 h =7 , g=1 h=13 but one of them is far away from target
+
     auto current = open.back();
     open.pop_back();
-    //TODO : needs handling here
-    //grid[x][y] = State::kPath;
     final_path.push_back(current);
+
     // Check if we're done.
     if (current.x == goal[0] && current.y == goal[1])
     {
@@ -153,7 +167,7 @@ vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Game &game)
     }
 
     // If we're not done, expand search to current node's neighbors.
-    ExpandNeighbors(current, goal, game);
+    ExpandNeighbors(current, goal, snake);
   }
 
   // We've run out of new nodes to explore and haven't found a path.
@@ -162,29 +176,26 @@ vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Game &game)
   return std::vector<Node>{};
 }
 
-//this is supposed to be implemented in the renderer
-/*
-void PrintBoard(const vector<vector<State>> board) {
-  for (int i = 0; i < board.size(); i++) {
-    for (int j = 0; j < board[i].size(); j++) {
-      cout << CellString(board[i][j]);
-    }
-    cout << "\n";
-  }
-}
-*/
 
-void Path_A::run(Game &game, std::size_t kGridWidth, std::size_t kGridHeight)
+void Path_A::run(Snake &snake, SDL_Point food, std::size_t kGridWidth, std::size_t kGridHeight)
 {
+  final_path.clear();
+  open.clear();
+  visited.clear();
+// food.x = (7 , 15)  snake.x = 29 and snake.y = 5 :: failure case
+//food.x = (24 , 22)  snake.x = 3 and snake.y = 12
   Path_A::pGridHeight = kGridHeight;
   Path_A::pGridWidth = kGridWidth;
-  int foodLocation[2]{game.GetFoodLocation().x, game.GetFoodLocation().y};
-  std::cout << "food.x = " << foodLocation[0] << " and food.y = " << foodLocation[1];
-  int snakeHead[2]{game.GetSnake().head_x, game.GetSnake().head_y};
-  std::cout << "snake.x = " << snakeHead[0] << " and snake.y = " << snakeHead[1];
-  long gridLimits[2]{kGridWidth, kGridHeight};
-  auto solution = Search(snakeHead,foodLocation, game);
-  std::cout << "path found with size : " << final_path.size()
+  int foodLocation[2]{food.x, food.y};
+  //int foodLocation[2]{24,22};
+  std::cout << "food.x = "
+            << "(" << foodLocation[0] << " , " << foodLocation[1] << ") ";
+  int snakeHead[2]{floor(snake.head_x), floor(snake.head_y)};
+  //int snakeHead[2]{3, 12};
+  //std::cout << " snake.x = " << snakeHead[0] << " and snake.y = " << snakeHead[1] << "\n";
+  long gridLimits[2]{static_cast<int>(kGridWidth),static_cast<int>(kGridHeight)};
+  auto solution = Search(snakeHead, foodLocation, snake);
+  std::cout << " path found with size : " << final_path.size()
             << "\n";
 }
 

@@ -1,7 +1,7 @@
 #ifndef PATH_H
 #define PATH_H
 #include "snake.h"
-#include "game.h"
+#include "SDL.h"
 #include <vector>
 #include <iostream>
 
@@ -9,7 +9,9 @@ class Path_A
 {
 public:
     Path_A();
-    void run(Game &game, std::size_t,std::size_t); //A*
+    ~Path_A();
+    void run(Snake &snake, SDL_Point food, std::size_t, std::size_t); //A*
+    void SetFinalPath();
     struct Node
     {
         int x;
@@ -18,11 +20,10 @@ public:
         int g_value;
         int h_value;
     };
-
-    std::vector<Node> Search(int *, int *, Game &);
+    std::vector<Node> Search(int *, int *, Snake &);
     int CalculateHValue();
     void AddNeighbors();
-
+    std::vector<Path_A::Node> GetFinalPath();
     //CompareNodes
     //NextNode
     //ConstructFinalPath
@@ -33,8 +34,8 @@ private:
     std::vector<Node> open;
     std::vector<Node> visited;
     void AddToOpen(Node &node);
-    void ExpandNeighbors(const Node &current, int goal[2], Game &);
-    bool CheckValidCell(int x, int y, Game &game);
+    void ExpandNeighbors(const Node &current, int goal[2], Snake &);
+    bool CheckValidCell(int x, int y, Snake &snake);
     std::size_t pGridWidth;
     std::size_t pGridHeight;
 };

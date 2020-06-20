@@ -13,6 +13,10 @@ snake.h
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/game.h
 random
 -
+memory
+-
+path.h
+/home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/path.h
 SDL.h
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/SDL.h
 controller.h
@@ -45,8 +49,8 @@ path.h
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/path.h
 snake.h
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/snake.h
-game.h
-/home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/game.h
+SDL.h
+/home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/SDL.h
 vector
 -
 iostream
@@ -55,6 +59,8 @@ iostream
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/renderer.h
 vector
 -
+path.h
+/home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/path.h
 SDL.h
 /home/sherifothman/Downloads/CppND-Capstone-Snake-Game/src/SDL.h
 snake.h

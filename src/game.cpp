@@ -7,7 +7,9 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       engine(dev()),
       random_w(0, static_cast<int>(grid_width)),
       random_h(0, static_cast<int>(grid_height)) {
+  pathes = std::make_unique<Path_A>();
   PlaceFood();
+
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
@@ -25,7 +27,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update();
-    renderer.Render(snake, food);
+    pathes->run(GetSnake(),GetFoodLocation(),std::size_t{32},std::size_t{32});
+    renderer.Render(snake, food, pathes.get());
 
     frame_end = SDL_GetTicks();
 
@@ -47,8 +50,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     if (frame_duration < target_frame_duration) {
       SDL_Delay(target_frame_duration - frame_duration);
     }
-      Path_A pathes;
-  pathes.run(*this,std::size_t{32},std::size_t{32});
+  
   }
 }
 
@@ -88,4 +90,4 @@ void Game::Update() {
 int Game::GetScore() const { return score; }
 int Game::GetSize() const { return snake.size; }
 SDL_Point Game::GetFoodLocation() const {return food;}
-Snake Game::GetSnake() {return snake;}
+Snake& Game::GetSnake() {return snake;}
