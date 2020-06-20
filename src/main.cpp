@@ -14,11 +14,11 @@ int main() {
 
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
   Controller controller;
+  
   Game game(kGridWidth, kGridHeight);
-  Path path;
-  path.run(game,kGridWidth,kGridHeight);
-
   game.Run(controller, renderer, kMsPerFrame);
+  Game games(kGridWidth, kGridHeight);
+
   std::cout << "Game has terminated successfully!\n";
   std::cout << "Score: " << game.GetScore() << "\n";
   std::cout << "Size: " << game.GetSize() << "\n";

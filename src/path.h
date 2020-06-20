@@ -5,29 +5,38 @@
 #include <vector>
 #include <iostream>
 
-class Path{
-    public:
-    Path();
-    ~Path();
-    std::vector<Node> Search(int*, int*);
-    int CalculateHValue(); 
+class Path_A
+{
+public:
+    Path_A();
+    void run(Game &game, std::size_t,std::size_t); //A*
+    struct Node
+    {
+        int x;
+        int y;
+        bool visited;
+        int g_value;
+        int h_value;
+    };
+
+    std::vector<Node> Search(int *, int *, Game &);
+    int CalculateHValue();
     void AddNeighbors();
+
     //CompareNodes
     //NextNode
     //ConstructFinalPath
-    void run(Game&,std::size_t&,std::size_t&); //A*
-    private:
+    //Snake snake_path;
+
+private:
     std::vector<Node> final_path;
     std::vector<Node> open;
-
-
-};
-struct Node{
-     int x;
-     int y;
-     bool visited;
-     int g_value;
-     int h_value;
+    std::vector<Node> visited;
+    void AddToOpen(Node &node);
+    void ExpandNeighbors(const Node &current, int goal[2], Game &);
+    bool CheckValidCell(int x, int y, Game &game);
+    std::size_t pGridWidth;
+    std::size_t pGridHeight;
 };
 
 #endif

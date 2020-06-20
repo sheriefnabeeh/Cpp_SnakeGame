@@ -1,95 +1,191 @@
-// #include <algorithm>
-// /*
-// RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, float end_x, float end_y): m_Model(model) {
-//     // Convert inputs to percentage:
-//     start_x *= 0.01;
-//     start_y *= 0.01;
-//     end_x *= 0.01;
-//     end_y *= 0.01;
-//     RouteModel::Node node;
+#include <algorithm> // for sort
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include "snake.h"
+#include "game.h"
+#include "path.h"
+using std::abs;
+using std::cout;
+using std::ifstream;
+using std::istringstream;
+using std::sort;
+using std::string;
+using std::vector;
 
+// directional deltas
+const int delta[4][2]{{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+/*
+1.as input, take the Grid's data 
+2.when calculating neighbors : obstacle is grid or snake ->using directional deltas
+3.
+*/
 
-//     RoutePlanner::start_node = &m_Model.FindClosestNode(start_x,start_y);
-//     RoutePlanner::end_node = &m_Model.FindClosestNode(end_x, end_y);
+/**
+ * Compare the F values of two cells.
+ */
+Path_A::Path_A() {}
+bool Comparethis(Path_A::Node begin_node, Path_A::Node end_node)
+{
+  return begin_node.g_value + begin_node.h_value > end_node.g_value + end_node.h_value;
+}
 
-// }
-// */
+/**
+ * Sort the two-dimensional vector of ints in descending order.
+ */
+void CellSort(vector<Path_A::Node> &node_vector)
+{
+  std::sort(node_vector.begin(), node_vector.end(), Comparethis);
+}
 
-// float RoutePlanner::CalculateHValue(RouteModel::Node const *node) {
-    
-//     double distance_to_end = RoutePlanner::end_node->distance(*node);
-//     //for tracking :
-//     //std::cout << "distace to end : " << distance_to_end << "\n";
-//     return distance_to_end;
-// }
-// bool CompareNodes(const RouteModel::Node* fnode, const RouteModel::Node* snode) {
-//     return (fnode->g_value + fnode->h_value) > (snode->g_value + snode->h_value);
-//     //i should check if h = 0;
-// }
+// Calculate the manhattan distance
+int Heuristic(int x1, int y1, int x2, int y2)
+{
+  return abs(x2 - x1) + abs(y2 - y1);
+}
 
+/** 
+ * Check that a cell is valid: on the grid, not an obstacle, and clear. 
+ */
+bool Path_A::CheckValidCell(int x, int y, Game &game)
+{
+  /*
+check if x is not on the body of the snake or outside grid
+either loop over snake's body or mark the grid with the body to identify them
+or add the snakes body to a node vector
+*/
+  bool clear_cell = true;
+  for (SDL_Point snake_point : game.GetSnake().body)
+  {
+    if (x == static_cast<int>(game.GetSnake().head_x) && x == static_cast<int>(game.GetSnake().head_y))
+    {
+      clear_cell = false;
+      break;
+    }
+  }
+  bool on_grid_x = (clear_cell && x >= 0 && x < pGridWidth && x < pGridHeight);
+  bool on_grid_y = (clear_cell && y >= 0 && x < pGridWidth && x < pGridHeight);
+  if (on_grid_x && on_grid_y)
+  {
+    for (Node n : visited)
+    {
+    //  std::cout << "n.x = " << n.x << "and x = " << x <<"\n";
+      if (n.x == x && n.y == y)
+        clear_cell = false;
+    }
+  }
+  //TODO : needs a thought here
+  // return grid[x][y] == State::kEmpty;
+  //ENDTODO
+  return clear_cell;
+}
 
-// void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
-    
-//     current_node->FindNeighbors();
+/** 
+ * Add a node to the open list and mark it as open. 
+ */
+void Path_A::AddToOpen(Node &node)
+{
+  // Add node to open vector, and mark grid cell as closed.
+  open.push_back(node);
+  node.visited = true;
+  visited.push_back(node);
+}
 
-//     for (RouteModel::Node* neighbor : current_node->neighbors) {
-       
-//             neighbor->h_value = CalculateHValue(neighbor);
-//             neighbor->g_value = current_node->g_value + current_node->distance(*neighbor);
-//             neighbor->parent = current_node;
-//             neighbor->visited = true;
-//             open_list.push_back(neighbor);
-            
+/** 
+ * Expand current nodes's neighbors and add them to the open list.
+ */
+void Path_A::ExpandNeighbors(const Node &current, int goal[2], Game &game)
+{
+  // Get current node's data.
+  int x = current.x;
+  int y = current.y;
+  int g = current.g_value;
 
-//     }
+  // Loop through current node's potential neighbors.
+  for (int i = 0; i < 4; i++)
+  {
+    Node neighbor;
+    int x2 = x + delta[i][0];
+    int y2 = y + delta[i][1];
 
-// }
+    // Check that the potential neighbor's x2 and y2 values are on the grid and not closed.
+    if (Path_A::CheckValidCell(x2, y2, game))
+    {
+      // Increment g value and add neighbor to open list.
+      neighbor.g_value = g + 1;
+      neighbor.x = x2;
+      neighbor.y = y2;
+      neighbor.h_value = Heuristic(x2, y2, goal[0], goal[1]);
+      AddToOpen(neighbor);
+    }
+  }
+}
 
+/** 
+ * Implementation of A* search algorithm
+ */
+vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Game &game)
+{
+  // Create the vector of open nodes.
+  //vector<Node> open{};
 
+  // Initialize the starting node.
+  Node node_init{init[0], init[1], false, 0, 0};
+  int h_value = Heuristic(node_init.x, node_init.y, goal[0], goal[1]);
 
-// RouteModel::Node *RoutePlanner::NextNode() {
-   
-//     std::sort(open_list.begin(), open_list.end(), CompareNodes);
-//     RouteModel::Node *nearest_node = open_list.back();
-//     open_list.pop_back();
-//     return nearest_node ;
-// }
+  AddToOpen(node_init);
 
+  while (open.size() > 0)
+  {
+    // Get the next node
+    CellSort(open);
+    auto current = open.back();
+    open.pop_back();
+    //TODO : needs handling here
+    //grid[x][y] = State::kPath;
+    final_path.push_back(current);
+    // Check if we're done.
+    if (current.x == goal[0] && current.y == goal[1])
+    {
+      return final_path;
+    }
 
+    // If we're not done, expand search to current node's neighbors.
+    ExpandNeighbors(current, goal, game);
+  }
 
-// std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node *current_node) {
-//     // Create path_found vector
-//     distance = 0.0f;
-//     std::vector<RouteModel::Node> path_found;
-//     RouteModel::Node *found_node = current_node;
-//   // std::cout << "start node x : " << RoutePlanner::start_node->x << " and y : " << RoutePlanner::start_node->y << "\n";
-//   //  std::cout << "end node x : " << RoutePlanner::end_node->x << " and y : " << RoutePlanner::end_node->y << "\n" << "\n";
-//    RouteModel::Node* parent = current_node;
-//     path_found.push_back(*current_node);
-//     while ((*parent).x !=RoutePlanner::start_node->x){
+  // We've run out of new nodes to explore and haven't found a path.
+  cout << "No path found!"
+       << "\n";
+  return std::vector<Node>{};
+}
 
-//          parent = found_node->parent;
-//         distance += (*found_node).distance(*parent);
-//         path_found.push_back(*parent);
-//         found_node = parent; 
-        
+//this is supposed to be implemented in the renderer
+/*
+void PrintBoard(const vector<vector<State>> board) {
+  for (int i = 0; i < board.size(); i++) {
+    for (int j = 0; j < board[i].size(); j++) {
+      cout << CellString(board[i][j]);
+    }
+    cout << "\n";
+  }
+}
+*/
 
-//     }
-//     std::reverse(path_found.begin(), path_found.end());
+void Path_A::run(Game &game, std::size_t kGridWidth, std::size_t kGridHeight)
+{
+  Path_A::pGridHeight = kGridHeight;
+  Path_A::pGridWidth = kGridWidth;
+  int foodLocation[2]{game.GetFoodLocation().x, game.GetFoodLocation().y};
+  std::cout << "food.x = " << foodLocation[0] << " and food.y = " << foodLocation[1];
+  int snakeHead[2]{game.GetSnake().head_x, game.GetSnake().head_y};
+  std::cout << "snake.x = " << snakeHead[0] << " and snake.y = " << snakeHead[1];
+  long gridLimits[2]{kGridWidth, kGridHeight};
+  auto solution = Search(snakeHead,foodLocation, game);
+  std::cout << "path found with size : " << final_path.size()
+            << "\n";
+}
 
-//     distance *= m_Model.MetricScale(); // Multiply the distance by the scale of the map to get meters.
-//     return path_found;
-
-// }
-
-
-// void RoutePlanner::AStarSearch() {
-//     RouteModel::Node* current_node =  RoutePlanner::start_node;
-//     open_list.push_back(current_node);
-//     current_node->visited = true;
-//     while (current_node != RoutePlanner::end_node) {
-//         AddNeighbors(current_node);
-//         current_node = NextNode();
-//     }
-//         m_Model.path = ConstructFinalPath(current_node);
-//  }
+//what's needed here :

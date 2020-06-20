@@ -1,7 +1,7 @@
 #include "game.h"
 #include <iostream>
 #include "SDL.h"
-
+#include "path.h"
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
@@ -40,13 +40,15 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       frame_count = 0;
       title_timestamp = frame_end;
     }
-
+  
     // If the time for this frame is too small (i.e. frame_duration is
     // smaller than the target ms_per_frame), delay the loop to
     // achieve the correct frame rate.
     if (frame_duration < target_frame_duration) {
       SDL_Delay(target_frame_duration - frame_duration);
     }
+      Path_A pathes;
+  pathes.run(*this,std::size_t{32},std::size_t{32});
   }
 }
 
