@@ -199,7 +199,7 @@ vector<Path_A::Node> Path_A::Search(int init[2], int goal[2], Snake &snake)
   return std::vector<Node>{};
 }
 
-void Path_A::run(Snake &snake, SDL_Point food, std::size_t kGridWidth, std::size_t kGridHeight)
+void Path_A::run(Snake snake,const SDL_Point &food, std::size_t kGridWidth, std::size_t kGridHeight)
 {
   final_path.clear();
   open->clear();
@@ -211,5 +211,5 @@ void Path_A::run(Snake &snake, SDL_Point food, std::size_t kGridWidth, std::size
   int foodLocation[2]{food.x, food.y};
   int snakeHead[2]{static_cast<int>(snake.head_x), static_cast<int>(snake.head_y)};
   long gridLimits[2]{static_cast<int>(kGridWidth), static_cast<int>(kGridHeight)};
-  auto solution = Search(snakeHead, foodLocation, snake);
+  auto solution = Search(std::move(snakeHead), std::move(foodLocation), snake);
 }

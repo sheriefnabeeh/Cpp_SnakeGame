@@ -13,7 +13,7 @@ public:
     Path_A(const Path_A &);
     Path_A &operator=(const Path_A &);
     Path_A &operator=(Path_A &&);
-    void run(Snake &snake, SDL_Point food, std::size_t, std::size_t); //A*
+    void run(Snake snake,const SDL_Point &food, std::size_t , std::size_t ); //A*
     //void SetFinalPath();
     struct Node
     {

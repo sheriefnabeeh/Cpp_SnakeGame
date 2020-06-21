@@ -1,12 +1,10 @@
 # CPPND: Capstone Snake Game Example
 
-This is a starter repo for the Capstone project in the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The code for this repo was inspired by [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl) excellent StackOverflow post and set of responses.
+This is a modified version of the Snake Project made by Udacity, where the A*Search algorithm is integrated in the code to guide the snake to the target.
+
+Further information about the covered rubric points are in the last section of the Readme
 
 <img src="snake_game.gif"/>
-
-The Capstone Project gives you a chance to integrate what you've learned throughout this program. This project will become an important part of your portfolio to share with current and future colleagues and employers.
-
-In this project, you can build your own C++ application or extend this Snake game, following the principles you have learned throughout this Nanodegree Program. This project will demonstrate that you can independently create applications using a wide range of C++ features.
 
 ## Dependencies for Running Locally
 * cmake >= 3.7
@@ -29,3 +27,33 @@ In this project, you can build your own C++ application or extend this Snake gam
 2. Make a build directory in the top level directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./SnakeGame`.
+
+## Rubric covered Points/Topics
+In this project, i tried turning the algorithm into an object and define it's struct (Node) to be able
+to manipulate data easier and if possible add it to it's own thread but time is limited. In a better situation: I could have turned it too into a templatized class to make it's usage generic. suggestions are of course welcomed for future reference and learning.
+
+ In class "path.h" and "path.cpp":
+1. The project uses Object Oriented Programming techniques.
+2. Classes use appropriate access specifiers for class members.
+3. Classes abstract implementation details from their interfaces.
+4. Classes encapsulate behavior.
+
+in Class renderer.h, line 15,16
+5. Overloaded functions allow the same function to operate on different parameters.
+
+in Class "path.h" line 16 and 37 references are used
+6. The project makes use of references in function declarations.	
+
+in Class "path.cpp" line 28->34
+7. The project uses destructors appropriately.
+
+in Class "path.h" and "path.cpp" 
+8. The project follows the Rule of 5.
+
+in Class "game.cpp" line 36 and path.cpp ->run method 
+
+9. The project uses move semantics to move data, instead of copying it, where possible.
+
+in Class "game.h" line 26 and "game.cpp" line 24 
+
+10. The project uses smart pointers instead of raw pointers 
